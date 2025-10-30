@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loaner Checkout Kiosk</title>
+    
+    <!-- Tailwind CSS for base styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Our custom stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 font-sans flex items-center justify-center min-h-screen">
+
+    <div class="max-w-3xl w-full bg-white rounded-xl shadow-2xl p-8 m-4">
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Loaner Checkout System</h1>
+            <p class="text-lg text-gray-500">Select an item, then scan your ID card.</p>
+        </div>
+
+        <!-- 1. Item Display Section -->
+        <div id="item-display-area" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Item cards will be dynamically inserted here by script.js -->
+        </div>
+
+        <!-- 2. Action Section -->
+        <div>
+            <!-- Selected Item Info -->
+            <div id="selection-display" class="text-center mb-4 h-6">
+                <!-- e.g., "You selected: Loaner Laptop 1" -->
+            </div>
+
+            <!-- Scan Prompt -->
+            <!-- We've removed the input box. This is just a prompt. -->
+            <div id="scan-prompt" class="text-center text-lg text-gray-600 p-4 border-2 border-dashed border-gray-300 rounded-md">
+                Waiting for ID card scan...
+            </div>
+
+        </div>
+
+        <!-- 3. Message Area -->
+        <div id="message-area" class="mt-6 h-10 text-center text-lg font-medium">
+            <!-- Success/error messages will appear here -->
+        </div>
+    </div>
+
+    <!-- Our custom JavaScript -->
+    <!-- 'defer' ensures the script runs after the HTML is loaded -->
+    <script src="script.js" defer></script>
+</body>
+</html>
+
