@@ -1,30 +1,41 @@
-// --- MOCK DATA ---
-let mockItemDB = [
-    { id: "laptop1", name: "Loaner Laptop 1", status: "Available", checkedOutBy: null, checkedOutByName: null },
-    { id: "laptop2", name: "Loaner Laptop 2", status: "Checked Out", checkedOutBy: "987654321", checkedOutByName: "Jane Doe" },
-    { id: "projector1", name: "Portable Projector", status: "Available", checkedOutBy: null, checkedOutByName: null }
-];
-
 // --- STATE ---
 let selectedItemId = null;
 let scanBuffer = '';
 let scanTimer = null;
 
 // --- DOM ELEMENTS (GLOBAL) ---
-// We need these available to all functions
 let itemDisplayArea;
 let selectionDisplay;
 let messageArea;
 let scanPrompt;
 
 /**
- * 1. Renders the item cards on the page.
+ * 1. Fetches item data from the API and renders the cards.
  */
-function renderItems() {
+async function renderItems() {
+    let items = [];
+    try {
+        const response = await fetch('/api/items');
+        if (!response.ok) {
+            throw new Error(`Failed to fetch items: ${response.statusText}`);
+        }
+        items = await response.json();
+    } catch (error) {
+        console.error("Error fetching items:", error);
+        showMessage("Could not load items from server. Please refresh.", "error");
+        return; // Don't try to render
+    }
+
     // Clear the old items
     itemDisplayArea.innerHTML = '';
 
-    mockItemDB.forEach(item => {
+    // If no items, show a message
+    if (!items || items.length === 0) {
+        itemDisplayArea.innerHTML = '<p class="text-gray-500 col-span-full text-center">No loaner items found in the database.</p>';
+        return;
+    }
+
+    items.forEach(item => {
         const isAvailable = item.status === 'Available';
 
         const card = document.createElement('div');
@@ -57,57 +68,56 @@ function renderItems() {
 }
 
 /**
- * 2. Processes the scanned ID.
+ * 2. Processes the scanned ID by calling the API.
  * This is the CORE logic of our app.
  */
-function processScan(scannedId) {
+async function processScan(scannedId) {
     if (!scannedId) {
         showMessage("Scan failed. Please try again.", "error");
         return;
     }
 
-    scanPrompt.textContent = `Scanned ID: ${scannedId}`;
+    scanPrompt.textContent = `Processing ID: ${scannedId}...`;
+    scanPrompt.classList.add('text-blue-600'); // Show processing state
 
-    // MOCK API CALL: Look up user name
-    const mockUserName = `User (${scannedId.slice(-4)})`;
-    
-    // --- LOGIC ---
-    const itemToReturn = mockItemDB.find(item => item.checkedOutBy === scannedId);
-    
-    if (itemToReturn) {
-        // YES, this is a RETURN
-        itemToReturn.status = "Available";
-        itemToReturn.checkedOutBy = null;
-        itemToReturn.checkedOutByName = null;
-        
-        showMessage(`Thank you, ${mockUserName}. Item "${itemToReturn.name}" has been returned.`, "success");
+    try {
+        const response = await fetch('/api/scan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                scannedId: scannedId,
+                selectedItemId: selectedItemId // Will be null if no item is selected (for returns)
+            })
+        });
 
-    } else if (selectedItemId) {
-        // NO, this is a CHECKOUT
-        const itemToCheckout = mockItemDB.find(item => item.id === selectedItemId);
+        const result = await response.json();
 
-        if (itemToCheckout && itemToCheckout.status === 'Available') {
-            itemToCheckout.status = "Checked Out";
-            itemToCheckout.checkedOutBy = scannedId;
-            itemToCheckout.checkedOutByName = mockUserName;
-
-            showMessage(`Thank you, ${mockUserName}. You have checked out "${itemToCheckout.name}".`, "success");
+        if (!response.ok) {
+            // API returned an error (4xx, 5xx)
+            // We expect the API to send a JSON with an 'error' or 'message' field
+            const message = result.error || result.message || "An unknown error occurred.";
+            showMessage(message, "error");
         } else {
-            showMessage("That item is no longer available. Please select another.", "error");
+            // API returned a success (2xx)
+            // We expect a 'message' field
+            showMessage(result.message, "success");
         }
 
-    } else {
-        // NOT a return, and NO item is selected
-        showMessage("Please select an available item *before* scanning your ID to check out.", "error");
+    } catch (error) {
+        console.error("Error during scan processing:", error);
+        showMessage("Could not connect to the server. Check network.", "error");
     }
 
     // --- CLEANUP ---
     clearSelection();
-    renderItems(); // Re-draw the UI
+    await renderItems(); // Re-draw the UI with the new data from the server
     
     // Reset the prompt after a moment
     setTimeout(() => {
         scanPrompt.textContent = "Waiting for ID card scan...";
+        scanPrompt.classList.remove('text-blue-600');
     }, 2000);
 }
 
@@ -122,7 +132,7 @@ function showMessage(message, type = 'success') {
         if (messageArea.innerHTML.includes(message)) {
             messageArea.innerHTML = '';
         }
-    }, 5000);
+    }, 5000); // Show messages for 5 seconds
 }
 
 /**
@@ -138,25 +148,21 @@ function clearSelection() {
  * 5. Handles all key presses for the "in-memory" scanner.
  */
 function handleGlobalKeyDown(event) {
-    // Reset the timer on *every* keypress
     clearTimeout(scanTimer);
 
     if (event.key === 'Enter') {
-        event.preventDefault(); // Stop 'Enter' from doing anything else
+        event.preventDefault(); 
         if (scanBuffer.length > 0) {
-            processScan(scanBuffer);
+            processScan(scanBuffer); // Process the scanned ID
         }
         scanBuffer = ''; // Clear the buffer
     } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
-        // It's a printable character (a-z, 0-9, symbols)
         scanBuffer += event.key;
     }
     
-    // Set a timer. If nothing else is "typed" for 100ms,
-    // we assume it was a slow human, not a fast scan, so we clear the buffer.
     scanTimer = setTimeout(() => {
         scanBuffer = '';
-    }, 100);
+    }, 100); // 100ms timeout to differentiate scan vs. human
 }
 
 /**
@@ -169,7 +175,7 @@ function initializeApp() {
     messageArea = document.getElementById('message-area');
     scanPrompt = document.getElementById('scan-prompt');
 
-    // Draw the initial state
+    // Draw the initial state *from the API*
     renderItems(); 
     
     // Listen for clicks on the background to clear selection
@@ -179,7 +185,6 @@ function initializeApp() {
         }
     });
 
-    // --- THIS IS THE NEW, IMPORTANT PART ---
     // Start listening for the "scanner"
     document.addEventListener('keydown', handleGlobalKeyDown);
 }
