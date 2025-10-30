@@ -1,0 +1,8 @@
+/* This file is for any custom CSS rules that Tailwind doesn't cover.
+For this project, we just need a rule for the "selected" item.
+*/
+
+.item-card.selected {
+    box-shadow: 0 0 0 3px theme('colors.blue.500');
+    border-color: theme('colors.blue.500');
+}
