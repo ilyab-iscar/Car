@@ -4,3 +4,18 @@ To install them, run: pip install -r requirements.txt
 Flask
 
 Install httpPlatformHandler on the IIS
+
+The Easiest Fix (Using the IIS Manager GUI):
+
+1.Open IIS Manager on your server.
+
+2.In the "Connections" pane on the left, click on your server's name (the top-level item in the tree).
+
+3.In the main "Features View" (in the middle), find and double-click on "Configuration Editor".
+
+4.In the "Section" dropdown box at the top, navigate to this section: system.webServer -> handlers
+
+5.In the "Actions" pane on the far right, you will see an option that says "Unlock Section". Click it.
+(If it says "Lock Section", then it's already unlocked, and our problem is something else—but 99% of the time, it will say "Unlock Section".)
+
+6.After you click "Unlock Section", you don't even need to restart IIS. Just go back to your browser and refresh the page for your kiosk app.

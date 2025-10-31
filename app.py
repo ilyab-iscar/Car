@@ -224,4 +224,6 @@ def process_scan():
 # This allows us to run the app directly with `python app.py`
 # for testing, before we deploy it to IIS.
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    #app.run(debug=True, port=5000)
+    port = int(os.environ.get('HTTP_PLATFORM_PORT', 5000))  # Use IIS port if available, fallback to 5000 for local testing
+    app.run(host='0.0.0.0', port=port, threaded=True)  # '0.0.0.0' allows external access; threaded for basic concurrency
