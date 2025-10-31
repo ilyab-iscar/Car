@@ -1,1 +1,6 @@
+This file lists the Python packages needed.
+
+To install them, run: pip install -r requirements.txt
 Flask
+
+Install httpPlatformHandler on the IIS
