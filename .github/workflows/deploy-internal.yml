@@ -1,0 +1,25 @@
+name: Deploy to Internal IIS
+
+# Run this workflow on a push to the 'main' branch
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-to-iis:
+    # IMPORTANT: This tells GitHub to run this job on YOUR server
+    runs-on: self-hosted
+
+    steps:
+    # 1. Checks out your repo's code onto the runner
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    # 2. Copies the files from the runner's workspace to your IIS webroot
+    #    This is the "deployment" for a static site.
+    - name: Deploy to IIS
+      run: |
+        Copy-Item -Path . -Destination "C:\inetpub\wwwroot\my-site" -Recurse -Force
+        Write-Host "Deployment complete!"
