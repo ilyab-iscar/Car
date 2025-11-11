@@ -130,7 +130,7 @@ def log_action(item, user_id, user_name, action):
 
 # --- API ENDPOINTS ---
 
-@app.route('/api/items', methods=['GET'])
+@app.route('/car/api/items', methods=['GET'])
 def get_items():
     """
     Endpoint to get the current status of all items.
@@ -141,10 +141,10 @@ def get_items():
         # Convert list of Row objects to list of dicts
         return jsonify([dict(item) for item in items])
     except Exception as e:
-        print(f"Error in /api/items: {e}")
+        print(f"Error in /car/api/items: {e}")
         return jsonify({"error": "Failed to retrieve items from database"}), 500
 
-@app.route('/api/scan', methods=['POST'])
+@app.route('/car/api/scan', methods=['POST'])
 def process_scan():
     """
     Main endpoint to process a checkout or return.
