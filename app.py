@@ -1,4 +1,5 @@
 import sqlite3
+import os
 import subprocess
 import json
 from flask import Flask, jsonify, request, g
@@ -221,7 +222,11 @@ def process_scan():
 
 
 # --- RUN FOR TESTING ---
-# This allows us to run the app directly with `python app.py`
-# for testing, before we deploy it to IIS.
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # --- THIS IS THE FIX ---
+    # Read the port from the environment variable 'HTTP_PLATFORM_PORT'
+    # If it's not set (e.g., we are testing manually), default to 5000.
+    port = os.environ.get('HTTP_PLATFORM_PORT', 5000)
+    
+    # Run the app on 'localhost' (127.0.0.1) and on the correct port
+    app.run(host='127.0.0.1', port=port, debug=True)

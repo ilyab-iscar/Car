@@ -15,7 +15,7 @@ let scanPrompt;
 async function renderItems() {
     let items = [];
     try {
-        const response = await fetch('/api/items');
+        const response = await fetch('api/items');
         if (!response.ok) {
             throw new Error(`Failed to fetch items: ${response.statusText}`);
         }
@@ -81,7 +81,7 @@ async function processScan(scannedId) {
     scanPrompt.classList.add('text-blue-600'); // Show processing state
 
     try {
-        const response = await fetch('/api/scan', {
+        const response = await fetch('api/scan', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
